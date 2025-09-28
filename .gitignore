@@ -1,0 +1,23 @@
+# Python キャッシュ
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 仮想環境や venv
+.venv/
+env/
+
+# 公開しないノートブック / スクリプト
+VAE_1.ipynb
+VAE_2.ipynb
+VAE_3.ipynb
+structure_generator.ipynb
+structure_generator_2.ipynb
+structure_genarator_based_on_r_group_random.py
+main_fragments.csv
+sub_fragments.csv
+generated_structures.csv
+latest_materials_ver2.csv
+latest_materials_ver3.csv

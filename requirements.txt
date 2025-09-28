@@ -1,0 +1,15 @@
+numpy>=1.26
+pandas>=2.3
+scikit-learn>=1.6
+lightgbm>=4.6
+xgboost==1.6.0
+rdkit-pypi
+mordred
+optuna
+shap
+matplotlib
+seaborn
+jupyter
+py3Dmol
+torch>=2.2
+torchvision
