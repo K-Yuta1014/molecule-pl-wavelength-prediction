@@ -1,10 +1,9 @@
 {
   "name": "mol-regression-env",
   "build": {
-  "dockerfile": "Dockerfile",
-  "context": "."
-  }
-,
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
   "settings": {
     "terminal.integrated.defaultProfile.linux": "bash"
   },
@@ -12,7 +11,7 @@
     "ms-python.python",
     "ms-toolsai.jupyter"
   ],
-  "postCreateCommand": "python -m ipykernel install --user --name mol-regression-env --display-name 'Python (mol-regression-env)'",
+  "postCreateCommand": "python -m ipykernel install --user --name mol-regression-env --display-name \"Python (mol-regression-env)\"",
   "runArgs": ["--gpus", "all"],
   "remoteUser": "root"
 }

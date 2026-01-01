@@ -1,75 +1,92 @@
 # Molecule PL Wavelength Prediction
-![Python](https://img.shields.io/badge/python-3.9-blue.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+SMILES から分子記述子（RDKit / Mordred）を計算し、分子の発光波長（Photoluminescence wavelength, PL）を予測するための機械学習パイプラインです。 
 
-SMILESデータから記述子を計算し、分子の発光波長（Photoluminescence wavelength, PL）を予測するための機械学習パイプラインです。  
-記述子計算→EDA→モデル学習・汎化性能評価→テストデータ予測→AD適用→SHAPという流れになっています。 
+本リポジトリは
+
+**A. 「Notebookで記述子計算からモデル構築・予測まで一連の流れを実装」**      
+**B. 「SMILESを入力すれば予測波長が出力されるGUIソフト」** 
+
+の2本立てです。**A**の大まかな流れは↓の通りです。
 
 ![Overvies](docs/img/pl_example.png)
 
-Qiita記事:  
+Qiita記事にも記載していますので、こちらも参考にしてください。
 - [化学×AI: 機械学習でPL波長を予測する（第1回：記述子計算とデータ可視化）](https://qiita.com/Osarunokagoya/items/cc0f79e3a3d959de8635)  
 - [化学×AI: 機械学習でPL波長を予測する（第2回：予測モデルの構築）](https://qiita.com/Osarunokagoya/items/fbf618c29ba6c0f85253)  
 - [化学×AI: 機械学習でPL波長を予測する（第3回：出力結果の妥当性判断）](https://qiita.com/Osarunokagoya/items/d822d0516b10f9ffa20e)  
 
----
-
 ## セットアップ方法
 
-### 1. 簡単版（pip）
+### A. Notebookで実装（Docker / DevContainer）
+DockerとVSCodeを使うと完全再現ができます。`env/environment_train_linux_gpu.yml`を使用してください。又、
+`.devcontainer/`ディレクトリに Dockerfile と devcontainer.json を同梱しています。これらを使って、VSCodeの**Dev Containers: Rebuild Container**で起動してください。
+
+一応、GUI用の`env/environment_predict_win_cpu.yml`で環境構築して、JupyterLabで動くことも確認済みです。MiniforgeやAnacondaなどを使いたい場合は、GUI用のymlで仮想環境を作ってください。
+
+#### Notebookの流れ
+1. **Preparation.ipynb**     
+データを学習データ（PLラベルあり）とテストデータ（PLラベルなし）に分け、**それぞれ独立に記述子計算・前処理**を行います。記述子はRDKit, Mordred(2次元/3次元)、おまけでFingerprintを計算します（Fingerprintは計算だけで予測モデルは作りません）。ここで学習データとはPLデータがあるもの、テストデータとはPLデータがないもので区別しています。
+
+2. **EDA.ipynb**     
+データを可視化して、中身を確認します。また、PCA, t-SNEを使って、特徴量の分布を確認します。
+
+3. **Regression.ipynb** / 4. **Regression_CV.ipynb**     
+1で計算した学習データの記述子を使って予測モデルを構築します。Hold-Outで感触をつかみ、交差検証でハイパーパラメータチューニングしたモデル群を保存します。
+
+5. **Predict_all.ipynb**     
+4で使ったモデルを呼び出し、目的変数がないテストデータの予測を行います。また、ADモデルを構築して、予測結果の信頼度を評価します。
+
+6. **SHAP.ipynb**     
+SHAPを用いて特徴量重要度などの可視化を行います。Tree系はうまく動きますが、NN向けのSHAPはまだうまくいっておらず実装中です。。。
+
+※ 構築したモデルは `joblib` 形式で保存しており、推論時は対応する artifact を読み込んで使用します。
+
+### B. GUIソフト（Miniforge / conda）
+`env/environment_predict_win_cpu.yml`を使用することをお勧めします。中身はAで実装したモデルによって構築されており、使いやすいようにGUIで操作できます。`predict_pl_gui.py`を実行すると、GUIの画面が表示されます。
+
 下記コマンドを**ターミナル**で入力・実行し、ご自身の環境に必要なライブラリをインストールしてください。
 ```bash
-pip install -r requirements.txt
-jupyter lab
+conda env create -f env/environment_predict_win_cpu.yml -n pl_gui
+conda activate pl_gui
+python predict_pl_gui.py
 ```
 
-### 2. 完全再現版（Docker/DevContainer）
-VSCodeとDockerを使用している方は、こちらを使用していただくと完全再現ができます。GPU使用推奨ですが、NN以外の予測モデルはCPUで十分動きます。
-- `.devcontainer/` ディレクトリに Dockerfile と environment.yml を同梱しています  
-- VS Code Dev Containers を利用すると GPU 環境込みで再現可能です  
+↑を実行すると、下記の画面が表示されます。
 
----
+![Overvies](docs/img/gui_1.png)
+
+SMILESの欄に自分の予測したい分子のSMILESを入力し、Descriptorのプルダウンで使いたい記述子を選択してください。そしてPredictボタンを押すと、分子構造が描写され、予測結果が表示されます。
+
+![Overvies](docs/img/gui_2.png)
+
+いろんな分子をinputして遊んでみてください！！
+
+補足：
+- envの中に仮想環境構築に必要なものを入れています。GUIが使いたい場合は、environment_predict_win_cpu.ymlを使ってください。dockerコンテナ環境ではGUIは動きませんでした。Miniforgeなどで仮想環境を作り、実行してください。
+- `predict_pl_gui.py` (GUIソフトを立ち上げるpythonスクリプト）は `models/` と `outputs/descriptors/**/preprocess_rule*.json` を参照します。`models`と`outputs`のディレクトリはpyファイルと同じ階層にしてください。
+- 予測精度は`mordred_3d`の記述子を使ったモデルが一番高いです。`rdkit`記述子を使った場合は、NNなどのモデルの予測精度が不安定になるので、出力結果に注意してください。
 
 ## データ
 - 入力: `data/material_data.csv`  
-- 記述子出力: `outputs/descriptors/*.csv`  
-- 予測結果: `outputs/predictions/*.csv`  
+全データが入っており、notebookで学習データとテストデータに分けます。
 
-`material_data.csv` に分子構造を表すSMILESとその材料に対応するPL波長が載っています。     
+- 記述子出力: `outputs/descriptors/`  
+計算された記述子はここに格納されます。予測モデルを構築する際はここから呼び出します。
 
-※ データは特許や論文から集めたもので、ソルバトクロミズムの影響は無視しているため、ばらつきがあることをご承知おきください。あくまで機械学習パイプラインの勉強用です。
 
----
+- 予測結果: `outputs/predictions/`
+テストデータの予測結果はここに格納されます。
 
-## ノートブックの流れ
-**1.preparation.ipynb**  
-- データ読み込み、SMILES 構造の簡単な前処理を行います。 
-- 記述子の計算（RDKit, Mordred, 3D）
-
-**2.EDA.ipynb**  
-- データの可視化・統計解析を行います。
-
-**3.Regression.ipynb / 4.Regression_CV.ipynb**  
-- モデル構築、**3.Regression.ipynb** はホールドアウト, **3.Regression_CV.ipynb** は交差検証により、汎化性能の評価を行います。
-
-**5.predict_all.ipynb / 5.predict_NN**  
-- テストデータ予測、**all**が決定木モデル用で、**NN**がニューラルネットワークを使用したものになります。
-- Applicability Domain (AD) を考慮した判定を行います。
-
-**6.SHAP.ipynb**  
-- モデル解釈（SHAP値による特徴量重要度の可視化）を行います。
-
----
+※ `material_data.csv` に分子構造を表すSMILESとその材料に対応するPL波長が載っています。データは特許や論文（参考文献を参照）から集めたもので、ソルバトクロミズムの影響は無視しているため、ばらつきがあることをご承知おきください。なるべくtoluene溶液の結果を集めていますが、違う溶媒の結果も混ざっているので、あくまで機械学習パイプラインの勉強用と思ってください。新しいデータが入ったら更新していきます。
 
 ## 使用技術
-- Python (3.9)  
+- Python
 - RDKit, Mordred  
-- scikit-learn, LightGBM, XGBoost  
+- Scikit-learn, LightGBM, XGBoost  
 - Optuna（ハイパーパラメータ探索）  
 - SHAP（解釈可能性）  
 - PyTorch
 
----
-
-## ライセンス
-本リポジトリは研究・教育目的での利用を想定しています。
+## 参考文献
+↓に載せています。     
+[docs/references.md](docs/references.md)

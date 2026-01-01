@@ -1,23 +1,33 @@
-# Python キャッシュ
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 
 # Jupyter
 .ipynb_checkpoints/
 
-# 仮想環境や venv
-.venv/
-env/
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
-# 公開しないノートブック / スクリプト
-VAE_1.ipynb
-VAE_2.ipynb
-VAE_3.ipynb
-structure_generator.ipynb
-structure_generator_2.ipynb
-structure_genarator_based_on_r_group_random.py
-main_fragments.csv
-sub_fragments.csv
-generated_structures.csv
-latest_materials_ver2.csv
-latest_materials_ver3.csv
+# Env / build
+.env
+.venv/
+venv/
+miniforge3/
+conda-bld/
+pl_pred/
+pl_gui/
+pl_gui_test/
+
+# Logs
+*.log
+
+# ===== outputs (generated files) =====
+outputs/descriptors/**/*.csv
+outputs/predictions/**/*.csv
+
+# optional: data csv (if not distributing)
+# data/*.csv
+

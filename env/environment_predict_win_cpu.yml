@@ -1,0 +1,19 @@
+name: pl_gui
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - joblib=1.5.2
+  - mordred
+  - optuna
+  - scipy=1.13.1
+  - numpy=1.26.4
+  - pillow
+  - rdkit
+  - scikit-learn=1.6.1
+  - pandas
+  - matplotlib
+  - seaborn
+  - py3Dmol
+  - pytorch
+  - torchvision
